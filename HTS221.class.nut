@@ -7,7 +7,7 @@ enum HTS221_MODE {
 //Temperature Humidity
 class HTS221 {
 
-    static VERSION = [1, 0, 0];
+    static VERSION = [0, 0, 1];
 
     // 8 bit Register addresses
     static AV_CONF = 0x10;

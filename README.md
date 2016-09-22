@@ -4,7 +4,8 @@ The [HTS221](http://www.st.com/content/ccc/resource/technical/document/datasheet
 
 The HTS221 can interface over I&sup2;C or SPI. This class addresses only I&sup2;C for the time being.
 
-**To add this library to your project, add** `#require "HTS221.class.nut:1.0.0"` **to the top of your device code**
+Currently in beta - not released as a library.  To use please copy and paste the class.nut file in your device code.
+
 
 ## Class Usage
 
