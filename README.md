@@ -1,4 +1,4 @@
-# Driver for the HTS221 Air Pressure / Temperature Sensor
+# Driver for the HTS221 Temperature Humidity Sensor
 
 The [HTS221](http://www.st.com/content/ccc/resource/technical/document/datasheet/4d/9a/9c/ad/25/07/42/34/DM00116291.pdf/files/DM00116291.pdf/jcr:content/translations/en.DM00116291.pdf)  is an ultra-compact sensor for relative humidity and temperature.
 
