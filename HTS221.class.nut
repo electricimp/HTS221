@@ -7,7 +7,7 @@ enum HTS221_MODE {
 //Temperature Humidity
 class HTS221 {
 
-    static VERSION = [0, 0, 1];
+    static VERSION = [1, 0, 1];
 
     // 8 bit Register addresses
     static AV_CONF = 0x10;
@@ -129,7 +129,7 @@ class HTS221 {
     // Returns a table {humidity: <data>, temperature: <data>}
     function read(cb = null) {
 
-        local result = {"temperature": null, "humidity": null};
+        local result = {"temperature": null, "humidity": null, "error": null};
         local cbTimer = 0;
 
         if (_mode == HTS221_MODE.POWER_DOWN) {
