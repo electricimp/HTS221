@@ -30,6 +30,12 @@ The HTS221 can be configured in three different reading modes: *HTS221_MODE.POWE
 The *dataRate* parameter sets the output data rate (ODR) of the sensor in Hertz. The nearest supported ODR less than or equal to the requested rate will be set and returned by *setMode()*. Supported data rates are 0 (one-shot configuration), 1, 7 and 12.5Hz.
 
 ```squirrel
+// Configure sensor in one shot mode
+tempHumid.setMode(HTS221_MODE.ONE_SHOT);
+```
+
+```squirrel
+// Configure sensor in continuous mode
 local dataRate = tempHumid.setMode(HTS221_MODE.CONTINUOUS, 7);
 server.log(dataRate);
 ```
