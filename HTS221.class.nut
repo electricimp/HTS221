@@ -129,11 +129,11 @@ class HTS221 {
     // Returns a table {humidity: <data>, temperature: <data>}
     function read(cb = null) {
 
-        local result = {"temperature": null, "humidity": null, "error": null};
+        local result = {"temperature": null, "humidity": null};
         local cbTimer = 0;
 
         if (_mode == HTS221_MODE.POWER_DOWN) {
-            result.error = POWER_DOWN_READING_ERROR;
+            result.error <- POWER_DOWN_READING_ERROR;
         } else {
             // Handle One-shot conversion
             if (_mode == HTS221_MODE.ONE_SHOT) {
@@ -150,7 +150,7 @@ class HTS221 {
                 result.humidity = _h_slope*hum_raw + _h_offset;
                 result.temperature = _t_slope*temp_raw + _t_offset;
             } catch (err) {
-                result.error = err;
+                result.error <- err;
             }
         }
 
