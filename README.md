@@ -4,7 +4,14 @@ The [HTS221](http://www.st.com/content/ccc/resource/technical/document/datasheet
 
 The HTS221 can interface over I&sup2;C or SPI. This class addresses only I&sup2;C for the time being.
 
-**To add this library to your project, add** `#require "HTS221.class.nut:1.0.0"` **to the top of your device code**
+**To add this library to your project, add** `#require "HTS221.class.nut:1.0.1"` **to the top of your device code**
+
+## Release Notes
+
+| Version | Description |
+| --- | --- |
+| 1.0.0 | Initial release |
+| 1.0.1 | Fix timing in *read()* when run asynchronously; correctly structure table returned by *read()*; code tidy |
 
 ## Class Usage
 
@@ -13,7 +20,7 @@ The HTS221 can interface over I&sup2;C or SPI. This class addresses only I&sup2;
 The constructor takes two arguments to instantiate the class: a *pre-configured* I&sup2;C bus and the sensor’s I&sup2;C address in 8-bit form. The I&sup2;C address is optional and defaults to `0xBE`.
 
 ```squirrel
-#require "HTS221.class.nut:1.0.0"
+#require "HTS221.class.nut:1.0.1"
 
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
 tempHumid <- HTS221(hardware.i2c89);
@@ -25,7 +32,7 @@ tempHumid <- HTS221(hardware.i2c89);
 
 The HTS221 can be configured in three different reading modes: *HTS221_MODE.POWER_DOWN*, *HTS221_MODE.ONE_SHOT* or  *HTS221_MODE.CONTINUOUS*.
 
-*HTS221_MODE.POWER_DOWN* is the default mode, and no readings can be taken in this mode. In *HTS221_MODE.ONE_SHOT*, a reading will only be taken only when the *read()* method is called. In *HTS221_MODE.CONTINUOUS*, a reading frequecy must also be selected using the *dataRate* parameter. Readings will be taken continuously at the selected rate and when the *read()* method is called only the latest reading will be returned.
+*HTS221_MODE.POWER_DOWN* is the default mode, and no readings can be taken in this mode. In *HTS221_MODE.ONE_SHOT*, a reading will only be taken only when the *read()* method is called. In *HTS221_MODE.CONTINUOUS*, a reading frequency must also be selected using the *dataRate* parameter. Readings will be taken continuously at the selected rate and when the *read()* method is called only the latest reading will be returned.
 
 The *dataRate* parameter sets the output data rate (ODR) of the sensor in Hertz. The nearest supported ODR less than or equal to the requested rate will be set and returned by *setMode()*. Supported data rates are 0 (one-shot configuration), 1, 7 and 12.5Hz.
 
