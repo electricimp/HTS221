@@ -37,7 +37,7 @@ class HTS221 {
     static INT_PIN_ACTIVELOW = 0x80;
     static INT_PIN_OPENDRAIN = 0x40;
     static INT_DDRY_ENABLE = 0x04;
-    static POWER_DOWN_READING_ERROR = "Sensor in power down mode.  Please change mode to take a reading."
+    static POWER_DOWN_READING_ERROR = "Sensor in power down mode. Please change mode to take a reading."
     static MAX_MEAS_TIME_SECONDS = 0.5; // seconds; time to complete one-shot pressure conversion
 
     // Class variables
@@ -50,7 +50,13 @@ class HTS221 {
     _h_slope = null;
     _h_offset = null;
 
-    constructor(i2c, addr = 0xBE) {
+    constructor(i2c = null, addr = 0xBE) {
+
+        if (i2c == null) {
+            server.error("HTS221 requires a valid imp I2C object");
+            return null;
+        }
+
         _i2c  = i2c;
         _addr = addr;
 
@@ -121,16 +127,14 @@ class HTS221 {
 
     function getMode() {
         local val = _getReg(CTRL_REG1);
-        if (val >> 7 == 0x00) { return HTS221_MODE.POWER_DOWN; }
-        return ( (val & 0x03) == 0) ? HTS221_MODE.ONE_SHOT : HTS221_MODE.CONTINUOUS;
+        if (val >> 7 == 0x00) return HTS221_MODE.POWER_DOWN;
+        return ((val & 0x03  == 0) ? HTS221_MODE.ONE_SHOT : HTS221_MODE.CONTINUOUS);
     }
 
     // Read data from the Barometer
     // Returns a table {humidity: <data>, temperature: <data>}
     function read(cb = null) {
-
-        local result = {"temperature": null, "humidity": null};
-        local cbTimer = 0;
+        local result = {};
 
         if (_mode == HTS221_MODE.POWER_DOWN) {
             result.error <- POWER_DOWN_READING_ERROR;
@@ -140,31 +144,31 @@ class HTS221 {
                 // Set One-shot enable bit to 1
                 _setRegBit(CTRL_REG2, 0, 1);
                 // Ensure sensor has time to take reading
-                cb ? cbTimer = MAX_MEAS_TIME_SECONDS : imp.sleep(MAX_MEAS_TIME_SECONDS);
+                imp.sleep(MAX_MEAS_TIME_SECONDS);
             }
 
             // Take a reading
             try {
                 local hum_raw = _getSignedReg16LE(REG_HUM_OUT_16);
                 local temp_raw = _getSignedReg16LE(REG_TEMP_OUT_16);
-                result.humidity = _h_slope*hum_raw + _h_offset;
-                result.temperature = _t_slope*temp_raw + _t_offset;
+                result.humidity <- _h_slope * hum_raw + _h_offset;
+                result.temperature <- _t_slope * temp_raw + _t_offset;
             } catch (err) {
                 result.error <- err;
             }
         }
 
-        if (cb == null) { return result; }
-        imp.wakeup(cbTimer, function() { cb(result); });
+        if (cb == null) return result;
+        cb(result);
     }
 
     function configureDataReadyInterrupt(enable, options = 0) {
         val = _getReg(CTRL_REG3);
-        // Check and set the options
-        val = (options & INT_PIN_ACTIVELOW) ?  (val | INT_PIN_ACTIVELOW) : (val & ~ INT_PIN_ACTIVELOW);
-        val = (options & INT_PIN_OPENDRAIN) ?  (val | INT_PIN_OPENDRAIN) : (val & ~ INT_PIN_OPENDRAIN);
-        val = (enable) ? (val | INT_DDRY_ENABLE) : (val & ~INT_DDRY_ENABLE);
 
+        // Check and set the options
+        val = (options & INT_PIN_ACTIVELOW) ? (val | INT_PIN_ACTIVELOW) : (val & ~ INT_PIN_ACTIVELOW);
+        val = (options & INT_PIN_OPENDRAIN) ? (val | INT_PIN_OPENDRAIN) : (val & ~ INT_PIN_OPENDRAIN);
+        val = (enable) ? (val | INT_DDRY_ENABLE) : (val & ~INT_DDRY_ENABLE);
         _setReg(CTRL_REG3, val & 0xFF);
     }
 
@@ -178,24 +182,22 @@ class HTS221 {
         return _getReg(REG_WHO_AM_I);
     }
 
-    // Dump all the register's raw values to log
     function dumpRegs() {
-        server.log(format("AV_CONF  0x%02X", _getReg(AV_CONF)));
-
-        server.log(format("CTRL_REG1    0x%02X", _getReg(CTRL_REG1)));
-        server.log(format("CTRL_REG2    0x%02X", _getReg(CTRL_REG2)));
-        server.log(format("CTRL_REG3    0x%02X", _getReg(CTRL_REG3)));
-        server.log(format("STATUS_REG    0x%02X", _getReg(STATUS_REG)));
-
-        server.log(format("REG_HUM_OUT_16    0x%04X", _getReg(REG_HUM_OUT_16)));
-        server.log(format("REG_TEMP_OUT_16    0x%04X", _getReg(REG_TEMP_OUT_16)));
-
-        server.log(format("REG_WHO_AM_I  0x%02X", _getReg(REG_WHO_AM_I)));
+        // Dump the registers' raw values to log
+        server.log(format("AV_CONF         0x%02X", _getReg(AV_CONF)));
+        server.log(format("CTRL_REG1       0x%02X", _getReg(CTRL_REG1)));
+        server.log(format("CTRL_REG2       0x%02X", _getReg(CTRL_REG2)));
+        server.log(format("CTRL_REG3       0x%02X", _getReg(CTRL_REG3)));
+        server.log(format("STATUS_REG      0x%02X", _getReg(STATUS_REG)));
+        server.log(format("REG_HUM_OUT_16  0x%04X", _getReg(REG_HUM_OUT_16)));
+        server.log(format("REG_TEMP_OUT_16 0x%04X", _getReg(REG_TEMP_OUT_16)));
+        server.log(format("REG_WHO_AM_I    0x%02X", _getReg(REG_WHO_AM_I)));
     }
 
     //-------------------- PRIVATE METHODS --------------------//
+
     function _signedConvert(value, mask) {
-        local topbit = ((mask+1)/ 2);
+        local topbit = ((mask + 1) / 2);
         if (value & topbit) {
             // Negative
             value = ~(value & mask) + 1;
@@ -207,9 +209,7 @@ class HTS221 {
     function _getSignedReg16LE(reg) {
         // Read both bytes in one I2C operation
         local regs = _i2c.read(_addr, reg.tochar(), 2);
-        if (regs == null) {
-            throw "I2C read error: " + _i2c.readerror();
-        }
+        if (regs == null) throw "I2C read error: " + _i2c.readerror();
         local raw = (regs[0] | (regs[1] << 8));
 
         // Two's complement conversion if necessary
@@ -218,27 +218,19 @@ class HTS221 {
 
     function _getReg(reg) {
         local result = _i2c.read(_addr, reg.tochar(), 1);
-        if (result == null) {
-            throw "I2C read error: " + _i2c.readerror();
-        }
+        if (result == null) throw "I2C read error: " + _i2c.readerror();
         return result[0];
     }
 
     function _setReg(reg, val) {
         local result = _i2c.write(_addr, format("%c%c", reg, (val & 0xFF)));
-        if (result) {
-            throw "I2C write error: " + result;
-        }
+        if (result) throw "I2C write error: " + result;
         return result;
     }
 
     function _setRegBit(reg, bit, state) {
         local val = _getReg(reg);
-        if (state == 0) {
-            val = val & ~(0x01 << bit);
-        } else {
-            val = val | (0x01 << bit);
-        }
+        val = (state == 0) ? val & ~(0x01 << bit) : val | (0x01 << bit)
         return _setReg(reg, val);
     }
 
@@ -249,9 +241,10 @@ class HTS221 {
 
         local H0_T0_OUT = _getSignedReg16LE(REG_H0_OUT_16);
         local H1_T0_OUT = _getSignedReg16LE(REG_H1_OUT_16);
+
         // Calculate Humidity reading variables
-        _h_slope = ( H1_rH - H0_rH ) / ( H1_T0_OUT - H0_T0_OUT );
-        _h_offset = H0_rH - ( _h_slope * H0_T0_OUT );
+        _h_slope = (H1_rH - H0_rH) / (H1_T0_OUT - H0_T0_OUT);
+        _h_offset = H0_rH - (_h_slope * H0_T0_OUT);
 
         // Get Temperature calibration variables
         local MSB_TdegC = _getReg(T1_T0_MSB);
@@ -261,9 +254,10 @@ class HTS221 {
         local T1_degC = (T1_MSB | _getReg(T1_DEGC_x8)) / 8.0;
         local T0_OUT = _getSignedReg16LE(REG_T0_OUT_16);
         local T1_OUT = _getSignedReg16LE(REG_T1_OUT_16);
+
         // Calculate Temperature reading variables
-        _t_slope = ( T1_degC - T0_degC ) / ( T1_OUT - T0_OUT );
-        _t_offset = T0_degC - ( _t_slope * T0_OUT );
+        _t_slope = (T1_degC - T0_degC) / (T1_OUT - T0_OUT);
+        _t_offset = T0_degC - (_t_slope * T0_OUT);
 
         // Get mode
         _mode = getMode();
@@ -301,7 +295,7 @@ class HTS221 {
     }
 
     function _calculateHumidResolution(resolution) {
-        // clear AVGH bits
+        // Clear AVGH bits
         local AVGH = 0x00;  // AVGH = 000
 
         if (resolution < 8) {
@@ -385,7 +379,7 @@ class HTS221 {
     function _setDataRate(rate, val, setEnable = false) {
         if (setEnable) val = val | 0x80;
 
-        // clear datarate bits
+        // Clear datarate bits
         val = val & 0xFC;
         if (rate < 1) {
             rate = 0;
