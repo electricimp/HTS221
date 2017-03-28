@@ -150,7 +150,7 @@ class HTS221 {
     function getMode() {
         local val = _getReg(CTRL_REG1);
         if (val >> 7 == 0x00) return HTS221_MODE.POWER_DOWN;
-        return ((val & 0x03  == 0) ? HTS221_MODE.ONE_SHOT : HTS221_MODE.CONTINUOUS);
+        return ((val & 0x03) == 0) ? HTS221_MODE.ONE_SHOT : HTS221_MODE.CONTINUOUS;
     }
 
     // Read data from the Barometer
