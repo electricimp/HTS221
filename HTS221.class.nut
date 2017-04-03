@@ -1,15 +1,38 @@
+// MIT License
+//
+// Copyright 2016-2017 Electric Imp
+//
+// SPDX-License-Identifier: MIT
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO
+// EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES
+// OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+// ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 enum HTS221_MODE {
     POWER_DOWN,
     ONE_SHOT,
     CONTINUOUS
 }
 
-//Temperature Humidity
 class HTS221 {
 
-    static VERSION = [1, 0, 1];
+    static VERSION = "1.0.1";
 
-    // 8 bit Register addresses
+    // 8-bit Register addresses
     static AV_CONF = 0x10;
     static CTRL_REG1   = 0x20;
     static CTRL_REG2   = 0x21;
@@ -22,7 +45,7 @@ class HTS221 {
     static H1_RH_x2 = 0x31; // unsigned 8bit
     static REG_WHO_AM_I = 0x0F; // Return value is 0xBC
 
-    // 16 bit signed Registers
+    // 16-bit signed Registers
     // MSB of SUB address set to 1 to enable auto increased multiple data read/write
     static REG_HUM_OUT_16   = 0xA8;
     static REG_TEMP_OUT_16  = 0xAA;
@@ -43,7 +66,6 @@ class HTS221 {
     // Class variables
     _i2c  = null;
     _addr = null;
-
     _mode = null;
     _t_slope = null;
     _t_offset = null;
@@ -69,7 +91,6 @@ class HTS221 {
         local temp = _calculateTempResolution(tempRes);
         local humid = _calculateHumidResolution(humidRes);
         val = val | temp.AVGT | humid.AVGH;
-
         _setReg(AV_CONF, val);
         return {"temperatureResolution" : temp.resolution, "humidityResolution" : humid.resolution};
     }
@@ -106,6 +127,7 @@ class HTS221 {
                 _mode = HTS221_MODE.POWER_DOWN;
                 return null;
         }
+        
         return dataRate;
     }
 
@@ -128,7 +150,7 @@ class HTS221 {
     function getMode() {
         local val = _getReg(CTRL_REG1);
         if (val >> 7 == 0x00) return HTS221_MODE.POWER_DOWN;
-        return ((val & 0x03  == 0) ? HTS221_MODE.ONE_SHOT : HTS221_MODE.CONTINUOUS);
+        return ((val & 0x03) == 0) ? HTS221_MODE.ONE_SHOT : HTS221_MODE.CONTINUOUS;
     }
 
     // Read data from the Barometer
