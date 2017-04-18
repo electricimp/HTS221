@@ -4,7 +4,7 @@ The [HTS221](http://www.st.com/content/ccc/resource/technical/document/datasheet
 
 The HTS221 can interface over I&sup2;C or SPI. This class addresses only I&sup2;C for the time being.
 
-**To add this library to your project, add** `#require "HTS221.class.nut:1.0.1"` **to the top of your device code**
+**To add this library to your project, add** `#require "HTS221.class.nut:1.0.2"` **to the top of your device code**
 
 ## Release Notes
 
@@ -20,7 +20,7 @@ The HTS221 can interface over I&sup2;C or SPI. This class addresses only I&sup2;
 The constructor takes two arguments to instantiate the class: a *pre-configured* I&sup2;C bus and the sensor’s I&sup2;C address in 8-bit form. The I&sup2;C address is optional and defaults to `0xBE`.
 
 ```squirrel
-#require "HTS221.class.nut:1.0.1"
+#require "HTS221.class.nut:1.0.2"
 
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
 tempHumid <- HTS221(hardware.i2c89);
@@ -131,7 +131,7 @@ server.log("Number of humidity samples: " + res.humidityResolution);
 
 This method configures the interrupt pin driver for a data ready interrupt. The device starts with this disabled by default.
 
-####Parameters
+#### Parameters
 
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -155,9 +155,9 @@ tempHumid.configureDataReadyInterrupt(true);
 tempHumid.configureDataReadyInterrupt(true, HTS221.INT_PIN_ACTIVELOW | HTS221.INT_PIN_OPENDRAIN);
 ```
 
-### getInterruptSrc()
+### getInterruptStatus()
 
-Use the *getInterruptSrc()* method to determine what caused an interrupt. This method returns a table with two keys to provide information about which interrupts are active. The content of this table is updated every one-shot reading, and after completion of every ODR cycle.
+Use the *getInterruptStatus()* method to determine what caused an interrupt. This method returns a table with two keys to provide information about which interrupts are active. The content of this table is updated every one-shot reading, and after completion of every ODR cycle.
 
 | Key | Description |
 | --- | --- |
@@ -166,7 +166,7 @@ Use the *getInterruptSrc()* method to determine what caused an interrupt. This m
 
 ```squirrel
 // Check the interrupt source and clear the latched interrupt
-local intSrc = tempHumid.getInterruptSrc();
+local intSrc = tempHumid.getInterruptStatus();
 
 // Log if new data is available
 if (intSrc.humidity_data_available) server.log("New humidity data available");
