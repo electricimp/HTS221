@@ -40,22 +40,23 @@ class BasicTestCase extends ImpTestCase {
 
     function testSensorDevID() {
         local id = _tempHumid.getDeviceID();
-        this.assertEqual(0xBC, id);
+        this.assertEqual(0xBC, id, "Device id matches datasheet.");
     }
 
     // Test mode
     function testSetGetMode() {
         local dataRate = _tempHumid.setMode(HTS221_MODE.ONE_SHOT);
-        this.assertEqual(0, dataRate);
+        this.assertEqual(0, dataRate, "Set mode returned expected data rate");
         local mode = _tempHumid.getMode();
-        this.assertEqual(HTS221_MODE.ONE_SHOT, mode);
+        this.assertEqual(HTS221_MODE.ONE_SHOT, mode, "Get mode returned expected data rate");
     }
 
     function testSyncRead() {
         _tempHumid.setMode(HTS221_MODE.ONE_SHOT);
         local result = _tempHumid.read();
-        this.assertTrue(result.temperature > 0 && result.temperature < 50);
-        this.assertTrue(result.humidity > 0 && result.humidity < 100);
+        this.info(format("Current Humidity: %0.2f %s, Current Temperature: %0.2f °C", result.humidity, "%", result.temperature));
+        this.assertTrue(result.temperature > 0 && result.temperature < 50, "Temperature reading withing acceptable bounds");
+        this.assertTrue(result.humidity > 0 && result.humidity < 100, "Humidity reading withing acceptable bounds");
     }
 
     function testAsyncRead() {
@@ -65,8 +66,9 @@ class BasicTestCase extends ImpTestCase {
                 if ("error" in result) {
                     reject(result.error);
                 } else {
-                    this.assertTrue(result.temperature > 0 && result.temperature < 50);
-                    this.assertTrue(result.humidity > 0 && result.humidity < 100);
+                    this.info(format("Current Humidity: %0.2f %s, Current Temperature: %0.2f °C", result.humidity, "%", result.temperature));
+                    this.assertTrue(result.temperature > 0 && result.temperature < 50, "Temperature reading withing acceptable bounds");
+                    this.assertTrue(result.humidity > 0 && result.humidity < 100, "Humidity reading withing acceptable bounds");
                     resolve();
                 }
             }.bindenv(this));
@@ -75,20 +77,20 @@ class BasicTestCase extends ImpTestCase {
 
     function testSetGetSupportedResolution() {
         local res1 = _tempHumid.setResolution(16, 32);
-        this.assertEqual(16, res1.temperatureResolution);
-        this.assertEqual(32, res1.humidityResolution);
+        this.assertEqual(16, res1.temperatureResolution, "Set temperature resolution returned expected value");
+        this.assertEqual(32, res1.humidityResolution, "Set humidity resolution returned expected value");
         local res2 = _tempHumid.getResolution();
-        this.assertEqual(16, res2.temperatureResolution);
-        this.assertEqual(32, res2.humidityResolution);
+        this.assertEqual(16, res2.temperatureResolution, "Get temperature resolution returned expected value");
+        this.assertEqual(32, res2.humidityResolution, "Get humidity resolution returned expected value");
     }
 
     function testSetGetUnsupportedResolution() {
         local res1 = _tempHumid.setResolution(12, 20);
-        this.assertEqual(8, res1.temperatureResolution);
-        this.assertEqual(16, res1.humidityResolution);
+        this.assertEqual(8, res1.temperatureResolution, "Set temperature resolution returned expected adjusted value");
+        this.assertEqual(16, res1.humidityResolution, "Set humidity resolution returned expected adjusted value");
         local res2 = _tempHumid.getResolution();
-        this.assertEqual(8, res2.temperatureResolution);
-        this.assertEqual(16, res2.humidityResolution);
+        this.assertEqual(8, res2.temperatureResolution, "Get temperature resolution returned expected adjusted value");
+        this.assertEqual(16, res2.humidityResolution, "Get humidity resolution returned expected adjusted value");
     }
 
     function testInterrupt() {
@@ -96,11 +98,18 @@ class BasicTestCase extends ImpTestCase {
         _int.configure(DIGITAL_IN_WAKEUP, function() {
             if (_int.read() == 0) return;
             local result = _tempHumid.getInterruptStatus();
-            this.assertTrue(result.humidity_data_available || result.temp_data_available);
+            this.info("New humidity data available: " + result.humidity_data_available);
+            this.info("New temperature data available: " + result.temp_data_available);
+            this.assertTrue(result.humidity_data_available || result.temp_data_available, "Data ready interrupt triggerd as expected");
         }.bindenv(this))
         _tempHumid.setMode(HTS221_MODE.CONTINUOUS, 1);
         _tempHumid.getInterruptStatus();
         _tempHumid.configureDataReadyInterrupt(true);
+    }
+
+    function tearDown() {
+        _tempHumid.configureDataReadyInterrupt(false);
+        _tempHumid.setMode(HTS221_MODE.POWER_DOWN);
     }
 
 }
