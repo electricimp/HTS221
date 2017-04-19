@@ -30,7 +30,7 @@ enum HTS221_MODE {
 
 class HTS221 {
 
-    static VERSION = "1.0.1";
+    static VERSION = "2.0.0";
 
     // 8-bit Register addresses
     static AV_CONF = 0x10;
@@ -127,7 +127,7 @@ class HTS221 {
                 _mode = HTS221_MODE.POWER_DOWN;
                 return null;
         }
-        
+
         return dataRate;
     }
 
@@ -185,7 +185,7 @@ class HTS221 {
     }
 
     function configureDataReadyInterrupt(enable, options = 0) {
-        val = _getReg(CTRL_REG3);
+        local val = _getReg(CTRL_REG3);
 
         // Check and set the options
         val = (options & INT_PIN_ACTIVELOW) ? (val | INT_PIN_ACTIVELOW) : (val & ~ INT_PIN_ACTIVELOW);
