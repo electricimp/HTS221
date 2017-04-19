@@ -95,20 +95,24 @@ class BasicTestCase extends ImpTestCase {
 
     function testInterrupt() {
         _int = hardware.pin1;
-        _int.configure(DIGITAL_IN_WAKEUP, function() {
-            if (_int.read() == 0) return;
-            local result = _tempHumid.getInterruptStatus();
-            this.info("New humidity data available: " + result.humidity_data_available);
-            this.info("New temperature data available: " + result.temp_data_available);
-            this.assertTrue(result.humidity_data_available || result.temp_data_available, "Data ready interrupt not triggerd as expected");
+        return Promise(function(resolve, reject) {
+            _int.configure(DIGITAL_IN_WAKEUP, function() {
+                if (_int.read() != 0) {
+                    local result = _tempHumid.getInterruptStatus();
+                    this.info("New humidity data available: " + result.humidity_data_available);
+                    this.info("New temperature data available: " + result.temp_data_available);
+                    this.assertTrue(result.humidity_data_available || result.temp_data_available, "Data ready interrupt not triggerd as expected");
+                    _tempHumid.configureDataReadyInterrupt(false);
+                    resolve("Data ready interrupt triggered as expected");
+                }
+            }.bindenv(this))
+            _tempHumid.setMode(HTS221_MODE.CONTINUOUS, 1);
+            _tempHumid.getInterruptStatus();
+            _tempHumid.configureDataReadyInterrupt(true);
         }.bindenv(this))
-        _tempHumid.setMode(HTS221_MODE.CONTINUOUS, 1);
-        _tempHumid.getInterruptStatus();
-        _tempHumid.configureDataReadyInterrupt(true);
     }
 
     function tearDown() {
-        _tempHumid.configureDataReadyInterrupt(false);
         _tempHumid.setMode(HTS221_MODE.POWER_DOWN);
     }
 
