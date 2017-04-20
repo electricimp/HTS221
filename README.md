@@ -14,7 +14,7 @@ The HTS221 can interface over I&sup2;C or SPI. This class addresses only I&sup2;
 | 1.0.1 | Fix timing in *read()* when run asynchronously; correctly structure table returned by *read()*; code tidy |
 | 2.0.0 | Fix bug in *configureDataReadyInterrupt()*; added tests; renamed library file to match new naming conventions |
 
-[![Build Status](https://api.travis-ci.org/electricimp/MessageManager.svg?branch=master)](https://travis-ci.org/electricimp/MessageManager)
+[![Build Status](https://api.travis-ci.org/electricimp/MessageManager.svg?branch=master)](https://travis-ci.org/electricimp/HTS221)
 
 ## Class Usage
 
