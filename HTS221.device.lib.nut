@@ -247,6 +247,9 @@ class HTS221 {
     }
 
     function _getCalibrationVariables() {
+        // Force a reset; some devices need this to have correct cal
+        _setReg(CTRL_REG2, 0x80);
+
         // Get Humidity calibration variables
         local H0_rH = _getReg(H0_RH_x2) / 2.0;
         local H1_rH = _getReg(H1_RH_x2) / 2.0;
