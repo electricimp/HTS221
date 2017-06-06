@@ -30,7 +30,7 @@ enum HTS221_MODE {
 
 class HTS221 {
 
-    static VERSION = "2.0.0";
+    static VERSION = "2.0.1";
 
     // 8-bit Register addresses
     static AV_CONF = 0x10;
