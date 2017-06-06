@@ -4,7 +4,7 @@ The [HTS221](http://www.st.com/content/ccc/resource/technical/document/datasheet
 
 The HTS221 can interface over I&sup2;C or SPI. This class addresses only I&sup2;C for the time being.
 
-**To add this library to your project, add** `#require "HTS221.device.lib.nut:2.0.0"` **to the top of your device code**
+**To add this library to your project, add** `#require "HTS221.device.lib.nut:2.0.1"` **to the top of your device code**
 
 ## Release Notes
 
@@ -13,6 +13,7 @@ The HTS221 can interface over I&sup2;C or SPI. This class addresses only I&sup2;
 | 1.0.0 | Initial release |
 | 1.0.1 | Fix timing in *read()* when run asynchronously; correctly structure table returned by *read()*; code tidy |
 | 2.0.0 | Fix bug in *configureDataReadyInterrupt()*; added tests; renamed library file to match new naming conventions |
+| 2.0.1 | Force reset before reading cal; more elegant sign extension |
 
 [![Build Status](https://api.travis-ci.org/electricimp/HTS221.svg?branch=master)](https://travis-ci.org/electricimp/HTS221)
 
@@ -23,7 +24,7 @@ The HTS221 can interface over I&sup2;C or SPI. This class addresses only I&sup2;
 The constructor takes two arguments to instantiate the class: a *pre-configured* I&sup2;C bus and the sensor’s I&sup2;C address in 8-bit form. The I&sup2;C address is optional and defaults to `0xBE`.
 
 ```squirrel
-#require "HTS221.device.lib.nut:2.0.0"
+#require "HTS221.device.lib.nut:2.0.1"
 
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
 tempHumid <- HTS221(hardware.i2c89);
