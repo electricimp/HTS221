@@ -218,25 +218,15 @@ class HTS221 {
 
     //-------------------- PRIVATE METHODS --------------------//
 
-    function _signedConvert(value, mask) {
-        local topbit = ((mask + 1) / 2);
-        if (value & topbit) {
-            // Negative
-            value = ~(value & mask) + 1;
-            return -1 * (value & mask);
-        }
-        return value;
-    }
-
     function _getSignedReg16LE(reg) {
         // Read both bytes in one I2C operation
         local regs = _i2c.read(_addr, reg.tochar(), 2);
         if (regs == null) throw "I2C read error: " + _i2c.readerror();
         local raw = (regs[0] | (regs[1] << 8));
 
-        // Two's complement conversion if necessary
-        return _signedConvert(raw, 0xFFFF);
-    }
+        // Sign extend
+        return (raw << 16) >> 16;
+   }
 
     function _getReg(reg) {
         local result = _i2c.read(_addr, reg.tochar(), 1);
@@ -257,6 +247,9 @@ class HTS221 {
     }
 
     function _getCalibrationVariables() {
+        // Force a reset; some devices need this to have correct cal
+        _setReg(CTRL_REG2, 0x80);
+
         // Get Humidity calibration variables
         local H0_rH = _getReg(H0_RH_x2) / 2.0;
         local H1_rH = _getReg(H1_RH_x2) / 2.0;
