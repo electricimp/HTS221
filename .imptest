@@ -1,7 +1,7 @@
 {
-    "modelId": "qryDFGlK1tUd" /* Explorer_kit_testing */,
+    "modelId": "dFKbHRnixLoE" /* Test Model F */,
     "devices": [
-        "23b51a57bc073aee" /* 23b51a57bc073aee */
+        "23b51a57bc073aee" /* F - 23b51a57bc073aee Explorer Kit*/
     ],
     "agentFile": false,
     "deviceFile": "HTS221.device.lib.nut",
