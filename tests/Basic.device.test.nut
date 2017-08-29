@@ -27,10 +27,11 @@ class BasicTestCase extends ImpTestCase {
 
     _tempHumid = null;
     _int = null;
+    _i2c = null;
 
     // Initialize sensor
     function setUp() {
-        local _i2c = hardware.i2c89;
+        _i2c = hardware.i2c89;
         _i2c.configure(CLOCK_SPEED_400_KHZ);
 
         _tempHumid = HTS221(_i2c, 0xBE);
@@ -96,6 +97,7 @@ class BasicTestCase extends ImpTestCase {
     function testInterrupt() {
         _int = hardware.pin1;
         return Promise(function(resolve, reject) {
+            // Configure interrupt callback
             _int.configure(DIGITAL_IN_WAKEUP, function() {
                 if (_int.read() != 0) {
                     local result = _tempHumid.getInterruptStatus();
@@ -103,16 +105,63 @@ class BasicTestCase extends ImpTestCase {
                     this.info("New temperature data available: " + result.temp_data_available);
                     this.assertTrue(result.humidity_data_available || result.temp_data_available, "Data ready interrupt not triggerd as expected");
                     _tempHumid.configureDataReadyInterrupt(false);
+                    // Clear the Data interrupt table
+                    _tempHumid.read();
+                    // Shut down sensor
+                    _tempHumid.setMode(HTS221_MODE.POWER_DOWN);
+                    // // Debug Logs to confirm interrupt is cleared
+                    // info(_int.read());
+                    // local result = _tempHumid.getInterruptStatus();
+                    // this.info("New humidity data available: " + result.humidity_data_available);
+                    // this.info("New temperature data available: " + result.temp_data_available);
                     resolve("Data ready interrupt triggered as expected");
                 }
             }.bindenv(this))
+            // Enable the data ready interrupt
             _tempHumid.setMode(HTS221_MODE.CONTINUOUS, 1);
-            _tempHumid.getInterruptStatus();
             _tempHumid.configureDataReadyInterrupt(true);
+            // Clear the Data interrupt table
+            _tempHumid.read();
         }.bindenv(this))
     }
 
+        // Helper Reset methods
+    function resetPressure() {
+        // Software reset for pressure sensor
+        _setReg(0xB8, 0x11, 0x14);
+    }
+
+    function resetAccel() {
+        local addr = 0x32;
+        // Set default values for registers
+        _setReg(addr, 0x20, 0x07);
+        _setReg(addr, 0x21, 0x00);
+        _setReg(addr, 0x22, 0x00);
+        _setReg(addr, 0x23, 0x00);
+        _setReg(addr, 0x24, 0x00);
+        _setReg(addr, 0x25, 0x00);
+        _setReg(addr, 0x30, 0x00);
+        _setReg(addr, 0x32, 0x00);
+        _setReg(addr, 0x33, 0x00);
+        _setReg(addr, 0x38, 0x00);
+        _setReg(addr, 0x39, 0x00);
+        _setReg(addr, 0x3A, 0x00);
+        _setReg(addr, 0x3B, 0x00);
+        _setReg(addr, 0x3C, 0x00);
+        _setReg(addr, 0x2E, 0x00);
+        _setReg(addr, 0x2E, 0x00);
+    }
+
+    function _setReg(addr, reg, val) {
+        _i2c.write(addr, format("%c%c", reg, (val & 0xff)));
+    }
+
     function tearDown() {
+        // Make sure interrupt pin and table are cleared.
+        _tempHumid.configureDataReadyInterrupt(false);
+        _tempHumid.setMode(HTS221_MODE.ONE_SHOT);
+        _tempHumid.read();
+        // Power down sensor
         _tempHumid.setMode(HTS221_MODE.POWER_DOWN);
     }
 
