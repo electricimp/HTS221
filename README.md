@@ -4,7 +4,7 @@ The [HTS221](http://www.st.com/content/ccc/resource/technical/document/datasheet
 
 The HTS221 can interface over I&sup2;C or SPI. This class addresses only I&sup2;C for the time being.
 
-**To add this library to your project, add** `#require "HTS221.device.lib.nut:2.0.1"` **to the top of your device code**
+**To add this library to your project, add** `#require "HTS221.device.lib.nut:2.0.2"` **to the top of your device code**
 
 ![Build Status](https://cse-ci.electricimp.com/app/rest/builds/buildType:(id:Hts221_BuildAndTest)/statusIcon)
 
@@ -16,6 +16,7 @@ The HTS221 can interface over I&sup2;C or SPI. This class addresses only I&sup2;
 | 1.0.1 | Fix timing in *read()* when run asynchronously; correctly structure table returned by *read()*; code tidy |
 | 2.0.0 | Fix bug in *configureDataReadyInterrupt()*; added tests; renamed library file to match new naming conventions |
 | 2.0.1 | Force reset before reading cal; more elegant sign extension |
+| 2.0.2 | Limit humidity readings to values between 0-100; Fixed bug in *read()* one shot mode; Moved static variables to constants |
 
 ## Class Usage
 
@@ -24,7 +25,7 @@ The HTS221 can interface over I&sup2;C or SPI. This class addresses only I&sup2;
 The constructor takes two arguments to instantiate the class: a *pre-configured* I&sup2;C bus and the sensor’s I&sup2;C address in 8-bit form. The I&sup2;C address is optional and defaults to `0xBE`.
 
 ```squirrel
-#require "HTS221.device.lib.nut:2.0.1"
+#require "HTS221.device.lib.nut:2.0.2"
 
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
 tempHumid <- HTS221(hardware.i2c89);
@@ -81,9 +82,9 @@ server.log(dataRate);
 
 ### read(*[callback]*)
 
-The *read()* method returns a relative humidity reading and a temperature reading in degrees Celsius. The reading result is in the form of a table with the fields *humidity* and *temperature*. If an error occurs during the reading process, the *humidity* and *temperature* fields will be null. Instead the table will contain the field *error*, which holds a description of the error.
+The *read()* method executes a temperature and humidity reading. If a callback function is provided, the reading executes asynchronously and a results table is passed to the callback, otherwise the reading blocks until completed and the results table is returned. 
 
-If a callback function is provided, the reading executes asynchronously, and the results table will be passed to the supplied function as its only parameter. If no callback is provided, the method blocks until the reading has been taken and then returns the results table.
+The results table will contain either an *error* slot, which holds a description of the error if an error occurred during the reading process, or *humidity* and *temperature* slots, which contain the relative humidity and temperature in degrees Celsius if the reading was successful. 
 
 #### Asynchronous Example
 
@@ -146,8 +147,8 @@ This method configures the interrupt pin driver for a data ready interrupt. The 
 
 | Option Constant | Description |
 | --- | --- |
-| *INT_PIN_ACTIVELOW* | Interrupt pin is active-high by default. Use to set interrupt to active-low |
-| *INT_PIN_OPENDRAIN* | Interrupt pin driver push-pull by default. Use to set interrupt to open-drain |
+| *HTS221_INT_PIN_ACTIVELOW* | Interrupt pin is active-high by default. Use to set interrupt to active-low |
+| *HTS221_INT_PIN_OPENDRAIN* | Interrupt pin driver push-pull by default. Use to set interrupt to open-drain |
 
 ```squirrel
 // Enable interrupt, configure as push-pull, active-high.
@@ -156,7 +157,7 @@ tempHumid.configureDataReadyInterrupt(true);
 
 ```squirrel
 // Enable interrupt, configure as open drain, active-low.
-tempHumid.configureDataReadyInterrupt(true, HTS221.INT_PIN_ACTIVELOW | HTS221.INT_PIN_OPENDRAIN);
+tempHumid.configureDataReadyInterrupt(true, HTS221_INT_PIN_ACTIVELOW | HTS221_INT_PIN_OPENDRAIN);
 ```
 
 ### getInterruptStatus()
